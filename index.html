@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Agora Live + Chat</title>
+    <script src="https://cdn.agora.io/sdk/release/AgoraRTC_N-4.20.2.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: Arial;
+        margin: 16px;
+      }
+      #video-container {
+        display: flex;
+        gap: 16px;
+        margin-top: 20px;
+      }
+      video {
+        width: 320px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+      }
+      #chat {
+        margin-top: 20px;
+      }
+      #messages {
+        min-height: 100px;
+        border: 1px solid #ccc;
+        padding: 8px;
+        background: #fafafa;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      #log {
+        color: green;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Test Agora Live + Chat</h2>
+    <label>
+      Channel Name:
+      <input type="text" id="channel" value="khang" />
+    </label>
+    <label>
+      UID:
+      <input type="text" id="uid" value="11123455" />
+    </label>
+    <select id="role">
+      <option value="host">Host (live)</option>
+      <option value="audience">Audience (watch)</option>
+    </select>
+    <button onclick="joinChannel()">Join Channel</button>
+    <button onclick="leaveChannel()">Leave Channel</button>
+
+    <div id="video-container"></div>
+
+    <div id="chat" style="display: none">
+      <h3>Chat</h3>
+      <div id="messages"></div>
+      <input id="msg" placeholder="Type message..." />
+      <button onclick="sendMsg()">Send</button>
+    </div>
+    <div id="log"></div>
+
+    <script>
+      let client, localTrack, channelName, uid, socket;
+      const serverUrl =
+        "https://4c33-58-187-184-36.ngrok-free.app/api/agora/token"; // đổi đúng IP backend bạn
+
+      // Thêm API stream:
+      const streamStartUrl =
+        "https://4c33-58-187-184-36.ngrok-free.app/api/streams/start";
+      const streamEndUrl =
+        "https://4c33-58-187-184-36.ngrok-free.app/api/streams/end";
+
+      // Đổi thành URL backend socket của bạn!
+      const socketUrl = "https://4c33-58-187-184-36.ngrok-free.app"; // <-- Cái này là endpoint socket.io (KHÔNG /api)
+
+      function showChat(show = true) {
+        document.getElementById("chat").style.display = show ? "" : "none";
+      }
+
+      function appendMsg(msg, isMine = false) {
+        const el = document.createElement("div");
+        el.textContent = msg;
+        el.style.textAlign = isMine ? "right" : "left";
+        document.getElementById("messages").appendChild(el);
+        document.getElementById("messages").scrollTop = 99999;
+      }
+
+      async function joinChannel() {
+        clearLog();
+        channelName = document.getElementById("channel").value.trim();
+        uid = document.getElementById("uid").value.trim();
+        if (!channelName || !uid) {
+          log("Hãy nhập đủ Channel Name và UID!");
+          return;
+        }
+        const role =
+          document.getElementById("role").value === "host"
+            ? "publisher"
+            : "audience";
+
+        // Lấy token từ backend
+        let res = await fetch(serverUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channelName, uid, role }),
+        });
+        let result = await res.json();
+        if (!res.ok) {
+          log(result.message || result.error || "Lỗi lấy token");
+          return;
+        }
+        let { appId, token } = result;
+
+        client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
+        await client.setClientRole(role);
+        client.on("user-published", handleUserPublished);
+        client.on("user-unpublished", handleUserUnpublished);
+        await client.join(appId, channelName, token, uid);
+
+        // Nếu là host, gọi API backend để bắt đầu live
+        if (role === "publisher") {
+          try {
+            // Gọi API start live
+            await fetch(streamStartUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                channelId: channelName,
+                hostId: uid,
+                title: "Buổi livestream thử nghiệm",
+              }),
+            });
+            // Tạo video track cho host
+            localTrack = await AgoraRTC.createCameraVideoTrack();
+            await client.publish([localTrack]);
+            let player = document.getElementById("local-player");
+            if (!player) {
+              player = document.createElement("div");
+              player.id = `local-player`;
+              player.innerHTML = `<video id="local-video" class="me" autoplay playsinline muted></video>`;
+              document.getElementById("video-container").appendChild(player);
+            }
+            localTrack.play("local-video");
+            log("Bạn đã live thành công!");
+          } catch (e) {
+            log("Không thể truy cập camera/microphone: " + e.message);
+          }
+        } else {
+          log("Bạn đã vào room với vai trò Viewer. Chờ host lên live!");
+        }
+
+        // ----- Kết nối Socket.IO sau khi join room -----
+        socket = io(socketUrl, { transports: ["websocket"] });
+        socket.on("connect", () => {
+          log("Đã kết nối chat server!");
+          // Vào room (để nhận chat đúng kênh)
+          socket.emit("live:getChat", { channelId: channelName });
+          showChat(true);
+        });
+
+        // Lắng nghe tin nhắn chat mới
+        socket.on("live:chat", (msgObj) => {
+          appendMsg(`[${msgObj.senderId}]: ${msgObj.message}`);
+        });
+
+        // Lắng nghe lịch sử chat cũ
+        socket.on("live:chatHistory", (messages) => {
+          document.getElementById("messages").innerHTML = "";
+          messages.forEach((msg) =>
+            appendMsg(`[${msg.senderId}]: ${msg.message}`)
+          );
+        });
+      }
+
+      async function leaveChannel() {
+        if (localTrack) {
+          localTrack.close();
+          localTrack = null;
+        }
+        if (client) await client.leave();
+        document.getElementById("video-container").innerHTML = "";
+        log("Đã thoát room.");
+        showChat(false);
+
+        // Nếu là host, gọi API backend để kết thúc live
+        const role =
+          document.getElementById("role").value === "host"
+            ? "publisher"
+            : "audience";
+        if (role === "publisher" && channelName) {
+          await fetch(streamEndUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channelId: channelName }),
+          });
+        }
+        // Ngắt socket chat
+        if (socket) socket.disconnect();
+      }
+
+      async function handleUserPublished(user, mediaType) {
+        await client.subscribe(user, mediaType);
+        if (mediaType === "video") {
+          let player = document.getElementById(`player-${user.uid}`);
+          if (!player) {
+            player = document.createElement("div");
+            player.id = `player-${user.uid}`;
+            player.innerHTML = `<video id="video-${user.uid}" autoplay playsinline></video>`;
+            document.getElementById("video-container").appendChild(player);
+          }
+          user.videoTrack.play(`video-${user.uid}`);
+          log("Đã thấy video từ Host UID " + user.uid);
+        }
+      }
+      function handleUserUnpublished(user) {
+        document.getElementById(`player-${user.uid}`)?.remove();
+        log("Host rời room hoặc tắt stream.");
+      }
+      function log(msg) {
+        document.getElementById("log").innerText = msg;
+      }
+      function clearLog() {
+        document.getElementById("log").innerText = "";
+      }
+
+      // Gửi chat tới backend
+      function sendMsg() {
+        const msg = document.getElementById("msg").value.trim();
+        if (!msg || !socket || !channelName || !uid) return;
+        socket.emit("live:chat", {
+          channelId: channelName,
+          senderId: uid,
+          message: msg,
+        });
+        appendMsg(`[Tôi]: ${msg}`, true);
+        document.getElementById("msg").value = "";
+      }
+    </script>
+  </body>
+</html>
