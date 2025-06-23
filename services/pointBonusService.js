@@ -8,7 +8,7 @@ const handleDailyBonus = async (userId) => {
   const now = new Date();
 
   if (latest && now - latest.createdAt < 24 * 60 * 60 * 1000) {
-    throw new Error("Bạn đã nhận điểm daily trong vòng 24 giờ.");
+    throw new Error("Bạn đã nhận điểm daily trong vòng 24 giờ nha.");
   }
 
   return await PointBonus.create({
