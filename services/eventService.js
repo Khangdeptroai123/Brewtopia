@@ -67,7 +67,7 @@ const unfollowEvent = async (eventId, userId) => {
 };
 const getEvent = async (id) => {
   try {
-    const event = await Cafe.findById({ _id: id });
+    const event = await Event.find({ cafe: id });
     if (!event) throw new Error("Sự kiện không tồn tại");
     return event;
   } catch (error) {
