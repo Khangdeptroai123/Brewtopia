@@ -1,3 +1,4 @@
+const Cafe = require("../models/Cafe");
 const Event = require("../models/Event");
 
 const creEvent = async (eventData) => {
@@ -66,9 +67,7 @@ const unfollowEvent = async (eventId, userId) => {
 };
 const getEvent = async (id) => {
   try {
-    console.log(id);
-
-    const event = await Cafes.find(id);
+    const event = await Cafe.findById({ _id: id });
     if (!event) throw new Error("Sự kiện không tồn tại");
     return event;
   } catch (error) {

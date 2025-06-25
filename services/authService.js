@@ -5,7 +5,6 @@ const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const cafeService = require("../services/cafeService");
 const e = require("express");
-const { log } = require("console");
 
 // Hàm gửi email xác thực
 const sendVerificationEmail = async (user) => {

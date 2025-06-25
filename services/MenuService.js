@@ -4,7 +4,7 @@ const Menu = require("../models/Menu");
 
 const getMenuItem = async (cafeId) => {
   if (!cafeId) throw new Error("ID quán cafe không được để trống");
-  const menu = await Menu.find({ cafe: cafeId }).populate("items");
+  const menu = await Menu.find({ cafe: cafeId });
   return menu;
 };
 
