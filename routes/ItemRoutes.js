@@ -13,13 +13,13 @@ const router = express.Router();
 
 router.get("/:menuId", getItems);
 // Thêm món Item
-// router.post(
-//   "/create-Item/:id",
-//   authenticateUser,
-//   authorizeRoles(["admin"]),
-//   uploadFields("itemMenu-images", [{ name: "image", maxCount: 1 }]),
-//   addItem
-// );
+router.post(
+  "/create-Item/:id",
+  authenticateUser,
+  authorizeRoles(["admin"]),
+  uploadFields("itemMenu-images", [{ name: "image", maxCount: 1 }]),
+  addItem
+);
 
 // // Cập nhật Item
 // router.put("/:id", authenticateUser, authorizeRoles(["admin"]), updateItem);
