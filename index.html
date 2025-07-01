@@ -3,114 +3,198 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bio của [Tên bạn]</title>
+    <title>Agora Video Call + Chat</title>
     <style>
       body {
-        background: #14171a;
-        color: #fff;
-        font-family: "Inter", Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-      }
-      .bio-card {
-        background: #23272f;
-        border-radius: 20px;
-        padding: 2rem 2.5rem 2rem 2.5rem;
-        margin-top: 6vh;
-        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.16);
-        max-width: 400px;
-        width: 90vw;
+        font-family: Arial, sans-serif;
+        background: #f0f0f0;
+        padding: 20px;
         text-align: center;
-        animation: fadein 0.7s;
       }
-      @keyframes fadein {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
+      input,
+      button,
+      select {
+        padding: 8px;
+        margin: 5px;
+        width: 80%;
+        max-width: 300px;
       }
-      .bio-avatar {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-bottom: 1rem;
-        border: 3px solid #3498db;
+      video {
+        width: 90%;
+        max-width: 300px;
+        margin: 10px auto;
+        border: 2px solid #000;
+        border-radius: 8px;
+        display: block;
       }
-      .bio-name {
-        font-size: 1.6rem;
-        font-weight: 600;
-        margin-bottom: 0.3rem;
+      #chatBox {
+        width: 90%;
+        max-width: 500px;
+        height: 250px;
+        margin: 15px auto;
+        background: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        overflow-y: auto;
+        text-align: left;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
       }
-      .bio-location {
-        color: #90caf9;
-        font-size: 1rem;
-        margin-bottom: 0.7rem;
-      }
-      .bio-desc {
-        font-size: 1.07rem;
-        margin-bottom: 1.2rem;
-        color: #cfd8dc;
-      }
-      .bio-links {
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
-      }
-      .bio-link a {
-        background: #3498db;
-        color: #fff;
-        text-decoration: none;
-        padding: 0.65rem 1rem;
-        border-radius: 100px;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        transition: background 0.18s;
-        display: inline-block;
-      }
-      .bio-link a:hover {
-        background: #1976d2;
-      }
-      /* Icon style (optional, remove if not dùng) */
-      .bio-link .icon {
-        margin-right: 0.5em;
-        vertical-align: middle;
+      .msg {
+        margin: 4px 0;
+        word-wrap: break-word;
       }
     </style>
   </head>
   <body>
-    <div class="bio-card">
-      <img
-        class="bio-avatar"
-        src="https://i.imgur.com/6VBx3io.png"
-        alt="Ảnh đại diện"
-      />
-      <div class="bio-name">[Tên của bạn]</div>
-      <div class="bio-location">[Địa chỉ hoặc nơi sống]</div>
-      <div class="bio-desc">
-        [Giới thiệu bản thân ngắn gọn, công việc, sở thích...]
-      </div>
-      <div class="bio-links">
-        <div class="bio-link">
-          <a href="[Link Facebook]" target="_blank">Facebook</a>
-        </div>
-        <div class="bio-link">
-          <a href="[Link Instagram]" target="_blank">Instagram</a>
-        </div>
-        <div class="bio-link">
-          <a href="[Link GitHub]" target="_blank">GitHub</a>
-        </div>
-        <div class="bio-link"><a href="mailto:[Email của bạn]">Email</a></div>
-        <!-- Thêm link khác nếu muốn -->
-      </div>
-    </div>
+    <h2>📹 Agora Video Call + Chat 💬</h2>
+
+    <input type="text" id="channel" placeholder="Tên phòng (channel)" />
+    <input type="text" id="name" placeholder="Tên bạn" />
+    <select id="role">
+      <option value="streamer">📤 Streamer (Gửi video)</option>
+      <option value="viewer">📥 Viewer (Xem video)</option>
+    </select>
+    <br />
+    <button onclick="joinCall()">Tham gia</button>
+    <button onclick="leaveCall()">Rời phòng</button>
+
+    <video id="localVideo" autoplay muted playsinline></video>
+    <div id="remoteVideos"></div>
+
+    <div
+      id="status"
+      style="margin: 10px; font-weight: bold; color: green"
+    ></div>
+
+    <!-- Chat -->
+    <div id="chatBox"></div>
+    <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." />
+    <button onclick="sendChat()">Gửi</button>
+
+    <!-- Agora SDK + Socket.io -->
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+      const socket = io();
+
+      let localAudioTrack, localVideoTrack;
+      let currentChannel = "",
+        currentName = "";
+
+      async function joinCall() {
+        const appId = "d883a1bfed5d4873bbadaf11aacff521"; // Thay bằng App ID thật
+        const channel = document.getElementById("channel").value.trim();
+        const name = document.getElementById("name").value.trim();
+        const role = document.getElementById("role").value;
+        const status = document.getElementById("status");
+
+        if (!channel || !name) {
+          alert("Vui lòng nhập đầy đủ thông tin.");
+          return;
+        }
+
+        currentChannel = channel;
+        currentName = name;
+
+        try {
+          // Gọi backend để join và lưu thông tin gọi
+          const res = await fetch("/api/stream/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, channel }),
+          });
+          const data = await res.json();
+          console.log("[Backend]:", data.message);
+
+          // Lấy token từ backend
+          const tokenRes = await fetch("/api/token/generate-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ channelName: channel, uid: name }),
+          });
+          const tokenData = await tokenRes.json();
+
+          await client.join(appId, channel, tokenData.token, name);
+          status.innerText = `✅ ${name} đã tham gia "${channel}"`;
+
+          socket.emit("join-room", { name, channel });
+
+          if (role === "streamer") {
+            localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+            localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+            localVideoTrack.play("localVideo");
+            await client.publish([localAudioTrack, localVideoTrack]);
+          } else {
+            document.getElementById("localVideo").style.display = "none";
+            client.on("user-published", async (user, mediaType) => {
+              await client.subscribe(user, mediaType);
+              if (mediaType === "video") {
+                const remoteVideo = document.createElement("video");
+                remoteVideo.autoplay = true;
+                remoteVideo.playsInline = true;
+                remoteVideo.id = `remote-${user.uid}`;
+                document
+                  .getElementById("remoteVideos")
+                  .appendChild(remoteVideo);
+                user.videoTrack.play(remoteVideo);
+              }
+            });
+          }
+
+          // Lắng nghe chat
+          socket.on("chat-message", (data) => {
+            // console.log(data);
+
+            const chatBox = document.getElementById("chatBox");
+            const msg = document.createElement("div");
+            msg.className = "msg";
+            msg.innerText = `${data.name}: ${data.message}`;
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+          });
+        } catch (error) {
+          console.error("Join lỗi:", error);
+          status.innerText = "❌ Không thể tham gia phòng.";
+        }
+      }
+
+      async function leaveCall() {
+        const name = document.getElementById("name").value.trim();
+        const channel = currentChannel;
+
+        if (localAudioTrack) localAudioTrack.close();
+        if (localVideoTrack) localVideoTrack.close();
+
+        await client.leave();
+
+        document.getElementById("status").innerText = "🚪 Đã rời phòng";
+        document.getElementById("localVideo").srcObject = null;
+        document.getElementById("remoteVideos").innerHTML = "";
+        document.getElementById("chatBox").innerHTML = "";
+
+        await fetch("/api/stream/leave", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, channel }),
+        });
+
+        socket.emit("leave-room", { name, channel });
+      }
+
+      function sendChat() {
+        const message = document.getElementById("chatInput").value.trim();
+        if (!message || !currentName || !currentChannel) return;
+
+        socket.emit("chat-message", {
+          name: currentName,
+          channel: currentChannel,
+          message,
+        });
+
+        document.getElementById("chatInput").value = "";
+      }
+    </script>
   </body>
 </html>
-v

@@ -64,9 +64,10 @@ app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/orderMeetingRooms", require("./routes/Orders/MeetingRoomRoutes"));
 app.use("/api/point-Bonus", require("./routes/pointBonusRoutes"));
 app.use("/api/posts", require("./routes/postRoutes"));
-app.use("/api/agora", require("./routes/agoraRoutes"));
-app.use("/api/streams", require("./routes/streamRoutes"));
-app.use("/api/chat", require("./routes/chatRoutes"));
+app.use("/api/token", require("./routes/tokenRoutes"));
+app.use("/api/stream", require("./routes/videoRoutes"));
+// app.use("/api/call", require("./routes/callRoutes));
+
 app.get("/test", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html")); // hoặc đổi thành tên file bạn đặt
 });
