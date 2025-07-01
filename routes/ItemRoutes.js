@@ -22,9 +22,9 @@ router.post(
 );
 
 // // Cập nhật Item
-// router.put("/:id", authenticateUser, authorizeRoles(["admin"]), updateItem);
+router.put("/:id", authenticateUser, authorizeRoles(["admin"]), updateItem);
 
 // // Xoá Item
-// router.delete("/:id", authenticateUser, authorizeRoles(["admin"]), deleteItem);
+router.delete("/:id", authenticateUser, authorizeRoles(["admin"]), deleteItem);
 
 module.exports = router;
