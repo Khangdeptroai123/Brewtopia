@@ -59,7 +59,7 @@ app.use("/api/likes", require("./routes/likeRoutes"));
 app.use("/api/shares", require("./routes/shareRoutes"));
 app.use("/api/events", require("./routes/eventRoutes"));
 app.use("/api/menus", require("./routes/menuRoutes"));
-//app.use("/api/menu-items", require("./routes/itemRoutes"));
+app.use("/api/menu-items", require("./routes/itemRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/orderMeetingRooms", require("./routes/Orders/MeetingRoomRoutes"));
 app.use("/api/point-Bonus", require("./routes/pointBonusRoutes"));
