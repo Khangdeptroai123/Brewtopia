@@ -59,7 +59,6 @@ app.use("/api/likes", require("./routes/likeRoutes"));
 app.use("/api/shares", require("./routes/shareRoutes"));
 app.use("/api/events", require("./routes/eventRoutes"));
 app.use("/api/menus", require("./routes/menuRoutes"));
-app.use("/api/menu-items", require("./routes/itemRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/orderMeetingRooms", require("./routes/Orders/MeetingRoomRoutes"));
 app.use("/api/point-Bonus", require("./routes/pointBonusRoutes"));
@@ -67,7 +66,7 @@ app.use("/api/posts", require("./routes/postRoutes"));
 app.use("/api/token", require("./routes/tokenRoutes"));
 app.use("/api/stream", require("./routes/videoRoutes"));
 // app.use("/api/call", require("./routes/callRoutes));
-
+app.use("/api/menu-items", require("./routes/itemRoutes"));
 app.get("/test", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html")); // hoặc đổi thành tên file bạn đặt
 });
