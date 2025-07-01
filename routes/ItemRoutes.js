@@ -11,8 +11,8 @@ const { uploadFields } = require("../middlewares/upload");
 
 const router = express.Router();
 
-// router.get("/:menuId", getItems);
-// // Thêm món Item
+router.get("/:menuId", getItems);
+// Thêm món Item
 // router.post(
 //   "/create-Item/:id",
 //   authenticateUser,
