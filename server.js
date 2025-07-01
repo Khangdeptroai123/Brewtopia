@@ -66,7 +66,7 @@ app.use("/api/posts", require("./routes/postRoutes"));
 app.use("/api/token", require("./routes/tokenRoutes"));
 app.use("/api/stream", require("./routes/videoRoutes"));
 // app.use("/api/call", require("./routes/callRoutes));
-app.use("/api/menu-items", require("./routes/itemRoutes"));
+app.use("/api/menu-items", require("./routes/ItemRoutes"));
 app.get("/test", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html")); // hoặc đổi thành tên file bạn đặt
 });
