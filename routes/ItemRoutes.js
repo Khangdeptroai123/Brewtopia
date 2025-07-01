@@ -1,15 +1,15 @@
-// const express = require("express");
-// const {
-//   addItem,
-//   updateItem,
-//   deleteItem,
-//   getItems,
-// } = require("../controllers/itemController");
-// const { authenticateUser } = require("../middlewares/authMiddleware");
-// const { authorizeRoles } = require("../middlewares/roleMiddleware");
-// const { uploadFields } = require("../middlewares/upload");
+const express = require("express");
+const {
+  addItem,
+  updateItem,
+  deleteItem,
+  getItems,
+} = require("../controllers/itemController");
+const { authenticateUser } = require("../middlewares/authMiddleware");
+const { authorizeRoles } = require("../middlewares/roleMiddleware");
+const { uploadFields } = require("../middlewares/upload");
 
-// const router = express.Router();
+const router = express.Router();
 
 // router.get("/:menuId", getItems);
 // // Thêm món Item
@@ -27,4 +27,4 @@
 // // Xoá Item
 // router.delete("/:id", authenticateUser, authorizeRoles(["admin"]), deleteItem);
 
-// module.exports = router;
+module.exports = router;
