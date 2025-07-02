@@ -65,6 +65,8 @@ app.use("/api/point-Bonus", require("./routes/pointBonusRoutes"));
 app.use("/api/posts", require("./routes/postRoutes"));
 app.use("/api/token", require("./routes/tokenRoutes"));
 app.use("/api/stream", require("./routes/videoRoutes"));
+app.use("/api/chat", require("./routes/chatRoutes"));
+
 // app.use("/api/call", require("./routes/callRoutes));
 app.use("/api/menu-items", require("./routes/ItemRoutes"));
 app.get("/test", (req, res) => {

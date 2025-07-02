@@ -42,6 +42,20 @@ const createChatRoom = async (req, res) => {
   }
 };
 
+const uploadChatImage = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "Không có ảnh được upload." });
+    }
+
+    const imageUrl = req.files[0].path; // Cloudinary sẽ trả về link tại path
+
+    res.status(200).json({ imageUrl });
+  } catch (err) {
+    console.error("Lỗi upload ảnh chat:", err.message);
+    res.status(500).json({ message: "Lỗi server khi upload ảnh." });
+  }
+};
 // Lấy danh sách phòng chat mà user tham gia
 const getChatRooms = async (req, res) => {
   try {

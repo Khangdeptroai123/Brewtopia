@@ -159,9 +159,9 @@ const sendResetPasswordEmail = async (email) => {
   // Gửi email chứa link reset mật khẩu
   await sendEmail({
     to: email,
-    code: resetToken, // Truyền token vào hàm sendEmail
+    code: resetToken,
     user: user.name,
-    type: "forgot-password", // Dùng chung hàm gửi email
+    type: "forgot-password",
   });
 
   return { email };

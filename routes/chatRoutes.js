@@ -5,8 +5,10 @@ const {
   getChatRooms,
   sendMessage,
   getMessages,
+  // uploadChatImage,
 } = require("../controllers/chatController");
 const { authenticateUser } = require("../middlewares/authMiddleware");
+const { uploadArray, handleMulterError } = require("../middlewares/upload");
 
 const router = express.Router();
 
@@ -21,5 +23,12 @@ router.post("/message", authenticateUser, sendMessage);
 
 // Lấy lịch sử tin nhắn theo phòng chat
 router.get("/message/:roomId", getMessages);
+
+// router.post(
+//   "/upload-image",
+//   uploadArray("chat-images", "images", 1),
+//   handleMulterError,
+//   uploadChatImage
+// );
 
 module.exports = router;

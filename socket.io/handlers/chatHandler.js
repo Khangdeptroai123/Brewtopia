@@ -66,6 +66,31 @@ module.exports = (socket, io) => {
       });
     }
   });
+  socket.on("chat:sendImage", async ({ chatId, senderId, imageUrl }) => {
+    try {
+      const chatRoom = await ChatRoom.findById(chatId);
+      if (!chatRoom) {
+        return socket.emit("error", { message: "Phòng chat không tồn tại." });
+      }
+
+      const chatMessage = await ChatMessage.create({
+        chatRoom: chatId,
+        sender: senderId,
+        image: imageUrl, // lưu link ảnh
+      });
+
+      io.to(chatId).emit("chat:receiveImage", {
+        _id: chatMessage._id,
+        chatRoom: chatId,
+        sender: senderId,
+        image: imageUrl,
+        createdAt: chatMessage.createdAt,
+      });
+    } catch (error) {
+      console.error("❌ Gửi ảnh lỗi:", error.message);
+      socket.emit("error", { message: "Không thể gửi ảnh." });
+    }
+  });
 
   socket.on("leaveRoom", async (roomId, userId) => {
     try {
