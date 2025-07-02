@@ -5,16 +5,20 @@ const allowedOrigins = [
   "http://localhost:4000",
 ];
 
-const io = new Server(server, {
-  cors: {
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST"],
-    credentials: true,
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log("🟡 CORS Origin:", origin); // Log để debug
+
+    // Cho phép nếu origin hợp lệ hoặc undefined (WebSocket không gửi origin)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("🔴 Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
   },
-});
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true, // BẮT BUỘC nếu dùng cookie, session, passport
+};
+
+module.exports = corsOptions;

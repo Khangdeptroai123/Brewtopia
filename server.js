@@ -13,13 +13,12 @@ require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
-
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // ✅ CORS cấu hình đúng cho client deploy
 
-app.use(cors(corsOptions));
 const path = require("path");
 
 // Kết nối MongoDB
