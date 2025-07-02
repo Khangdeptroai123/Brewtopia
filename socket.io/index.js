@@ -6,19 +6,17 @@ const chatHandler = require("./handlers/chatHandler");
 const commentHandler = require("./handlers/commentHandler");
 const followEventHandler = require("./handlers/followEventHandler");
 const videoHandler = require("./handlers/videoHandler");
+const corsOptions = require("../middlewares/corsOptions");
 
 module.exports = (server) => {
   const io = new Server(server, {
-    cors: {
-      // origin: process.env.CLIENT_URL,
-      origin: "*",
-      methods: ["GET", "POST"],
-    },
+    cors: corsOptions,
   });
 
   // 🔌 Khi có client kết nối
   io.on("connection", (socket) => {
     console.log("🔗 Client connected:", socket.id);
+
     followEventHandler(socket, io);
     ChatCallHandler(socket, io);
     chatHandler(socket, io);

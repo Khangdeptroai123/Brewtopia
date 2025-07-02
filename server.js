@@ -5,6 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const socketHandlers = require("./socket.io/index");
 const session = require("express-session");
+const corsOptions = require("./middlewares/corsOptions");
 require("./config/passport");
 const passport = require("passport");
 
@@ -18,21 +19,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // ✅ CORS cấu hình đúng cho client deploy
 
-const allowedOrigins = [process.env.CLIENT_URL];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 const path = require("path");
+
 // Kết nối MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
