@@ -12,12 +12,11 @@ const router = express.Router();
 
 router.post(
   "/",
-  authenticateUser,
   uploadArray("posts", "images", 3),
   handleMulterError,
   createPostSocial
 );
-// router.get("/", authenticateUser, getPosts);
+router.get("/", authenticateUser, getPosts);
 router.get("/", getPostsByIds);
 router.get("/allPost", authenticateUser, getPosts);
 router.get("/points", authenticateUser, getPointBonus);
