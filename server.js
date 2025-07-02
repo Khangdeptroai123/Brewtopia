@@ -16,11 +16,19 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+// ✅ CORS cấu hình đúng cho client deploy
+const allowedOrigins = [process.env.CLIENT_URL];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
-    // origin: "*",
-    credentials: true, // Allow credentials
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // 🔒 Cho phép cookie/session
   })
 );
 const path = require("path");
