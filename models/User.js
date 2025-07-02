@@ -22,6 +22,8 @@ const UserSchema = new mongoose.Schema(
       default: 0,
       min: [0, "Points must be non-negative"],
     },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: String },
   },
   { timestamps: true, versionKey: false }
 );

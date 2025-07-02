@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const cafeService = require("../services/cafeService");
-const e = require("express");
 
 // Hàm gửi email xác thực
 const sendVerificationEmail = async (user) => {
@@ -96,7 +95,7 @@ const resendVerificationCodeService = async (userId) => {
   return sendVerificationEmail(user);
 };
 
-const forgotPassword = async (email) => {
+const forgotPasswordV1 = async (email) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error("Email không tồn tại!");
 
@@ -111,16 +110,17 @@ const forgotPassword = async (email) => {
 
   // Lưu token vào user và đặt thời gian hết hạn (15 phút)
   user.resetPasswordToken = hashedToken;
-  user.resetPasswordExpiresAt = Date.now() + 15 * 60 * 1000; // 15 phút
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
   await user.save();
 
   // Gửi email reset password
   const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}&email=${email}`;
-  await sendEmail(
-    user.email,
-    `Bấm vào link để đặt lại mật khẩu: ${resetLink}`,
-    user.name
-  );
+  await sendEmail({
+    to: user.email,
+    code: resetToken,
+    user: user.name,
+    type: "forgot-password",
+  });
 
   return { message: "Đã gửi email đặt lại mật khẩu!", resetLink };
 };
@@ -174,7 +174,7 @@ module.exports = {
   verifyUserByEmail,
   resendVerificationCodeService,
   generateToken,
-  forgotPassword,
+  forgotPasswordV1,
   resetPwd,
   sendResetPasswordEmail,
 };

@@ -5,6 +5,8 @@ const {
   resendVerificationCodeService,
   resetPwd,
   generateToken,
+  forgotPasswordV1,
+  sendResetPasswordEmail,
 } = require("../services/authService");
 const User = require("../models/User");
 const setCookie = require("../utils/setCookie");
@@ -96,6 +98,8 @@ const resendVerificationCode = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
+    console.log(token, newPassword);
+
     const response = await resetPwd(token, newPassword);
     res.status(200).json(response);
   } catch (error) {
@@ -142,7 +146,7 @@ const forgotPassword = async (req, res) => {
     }
 
     // Gọi service để tạo token và gửi email
-    const response = await sendResetPasswordEmail(email);
+    const response = await forgotPasswordV1(email);
     res
       .status(200)
       .json({ message: "Email đặt lại mật khẩu đã được gửi!", response });
