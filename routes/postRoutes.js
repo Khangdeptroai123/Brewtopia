@@ -18,7 +18,7 @@ router.post(
   createPostSocial
 );
 // router.get("/", authenticateUser, getPosts);
-router.get("/", authenticateUser, getPostsByIds);
+router.get("/", getPostsByIds);
 router.get("/allPost", authenticateUser, getPosts);
 router.get("/points", authenticateUser, getPointBonus);
 
