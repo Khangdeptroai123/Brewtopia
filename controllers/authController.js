@@ -1,6 +1,5 @@
 const {
   registerUser,
-  loginUser,
   verifyUserByEmail,
   resendVerificationCodeService,
   resetPwd,
@@ -8,7 +7,7 @@ const {
   forgotPasswordV1,
 } = require("../services/authService");
 const User = require("../models/User");
-const bcrypt = require("bcrypt");
+const Crypto = require("crypto");
 const setCookie = require("../utils/setCookie");
 const Cafe = require("../models/Cafe");
 const { token } = require("morgan");
@@ -159,7 +158,9 @@ const forgotPassword = async (req, res) => {
 const confirmResetRequest = async (req, res) => {
   try {
     const { token } = req.query;
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    console.log(token);
+    const hashedToken = Crypto.createHash("sha256").update(token).digest("hex");
+    console.log(hashedToken);
 
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
