@@ -89,9 +89,14 @@ const forgotPasswordV1 = async (email) => {
   if (!user) throw new Error("Email không tồn tại!");
 
   const resetToken = crypto.randomBytes(32).toString("hex");
-  user.resetPasswordToken = resetToken;
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  user.resetPasswordToken = hashedToken;
   user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
-  user.isResetPasswordRequested = true; // 🟡 Đặt trạng thái chờ xác nhận
+  user.isResetPasswordRequested = true;
   await user.save();
 
   const confirmLink = `${process.env.CLIENT_URL}/confirm-reset?token=${resetToken}`;
@@ -100,13 +105,14 @@ const forgotPasswordV1 = async (email) => {
     to: user.email,
     code: resetToken,
     user: user.name,
-    type: "forgot-password", // bạn tạo template có nút dùng link này
+    type: "forgot-password",
   });
 
   return { message: "Đã gửi email xác nhận đặt lại mật khẩu", confirmLink };
 };
 const resetPwd = async (token, newPassword) => {
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
   const user = await User.findOne({
     resetPasswordToken: hashedToken,
     resetPasswordExpires: { $gt: Date.now() },
@@ -121,7 +127,7 @@ const resetPwd = async (token, newPassword) => {
   user.password = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
-  user.isResetPasswordRequested = undefined; // ✅ xoá field
+  user.isResetPasswordRequested = undefined;
   await user.save();
 
   return { message: "Mật khẩu đã được đặt lại thành công!" };

@@ -109,19 +109,6 @@ const resendVerificationCode = async (req, res) => {
   }
 };
 
-// Đặt lại mật khẩu bằng token
-const resetPassword = async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-    console.log(token, newPassword);
-
-    const response = await resetPwd(token, newPassword);
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
 const googleLogin = async (req, res) => {
   try {
     const user = req.user;
@@ -179,29 +166,43 @@ const confirmResetRequest = async (req, res) => {
       resetPasswordExpires: { $gt: Date.now() },
     }).select("+isResetPasswordRequested");
 
-    if (!user)
+    if (!user) {
       return res
         .status(400)
         .json({ message: "Token không hợp lệ hoặc đã hết hạn!" });
+    }
 
-    if (!user.isResetPasswordRequested)
+    if (!user.isResetPasswordRequested) {
       return res
         .status(400)
         .json({ message: "Yêu cầu đặt lại đã được xác nhận." });
+    }
 
     user.isResetPasswordRequested = false;
     await user.save();
 
-    // 👉 frontend redirect về form đổi mật khẩu
+    // Redirect về frontend để user nhập mật khẩu mới
     res.redirect(
       `${process.env.CLIENT_URL}/reset-password?token=${token}&email=${user.email}`
     );
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Lỗi xác nhận đặt lại mật khẩu", error: error.message });
+    res.status(500).json({
+      message: "Lỗi xác nhận đặt lại mật khẩu",
+      error: error.message,
+    });
   }
 };
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const response = await resetPwd(token, newPassword); // gọi service
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
