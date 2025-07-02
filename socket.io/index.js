@@ -13,7 +13,6 @@ module.exports = (server) => {
       // origin: process.env.CLIENT_URL,
       origin: "*",
       methods: ["GET", "POST"],
-      credentials: true,
     },
   });
 
