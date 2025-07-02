@@ -7,16 +7,26 @@ const ChatMessageSchema = new mongoose.Schema({
     ref: "ChatRoom",
     required: true,
   },
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  message: { type: String, required: true },
+  sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  message: {
+    type: String,
+    default: "", // để không required nếu là image
+  },
+  images: [String],
   messageType: {
     type: String,
     enum: ["text", "image", "file"],
     default: "text",
   },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const ChatMessage = mongoose.model("ChatMessage", ChatMessageSchema);
-
 module.exports = ChatMessage;

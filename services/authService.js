@@ -101,6 +101,7 @@ const forgotPasswordV1 = async (email) => {
 
   // Tạo token đặt lại mật khẩu (random string)
   const resetToken = crypto.randomBytes(32).toString("hex");
+  console.log(resetToken);
 
   // Mã hóa token trước khi lưu vào database
   const hashedToken = crypto

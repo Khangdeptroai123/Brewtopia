@@ -1,3 +1,4 @@
+const ChatMessage = require("../models/ChatMessage");
 const chatService = require("../services/chatService");
 
 const createChatRoom = async (req, res) => {
@@ -41,21 +42,40 @@ const createChatRoom = async (req, res) => {
       .json({ message: "Lỗi tạo phòng chat", error: error.message });
   }
 };
-
 const uploadChatImage = async (req, res) => {
   try {
+    const { roomId, message } = req.body;
+    const senderId = req.user.id;
+
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "Không có ảnh được upload." });
     }
 
-    const imageUrl = req.files[0].path; // Cloudinary sẽ trả về link tại path
+    // ✅ Lấy list ảnh từ req.files
+    const imageUrls = req.files.map((file) => file.path);
+    console.log("Ảnh upload:", imageUrls);
 
-    res.status(200).json({ imageUrl });
+    // ✅ Tạo tin nhắn mới
+    const newMessage = new ChatMessage({
+      chatRoom: roomId,
+      sender: senderId,
+      message: message || "",
+      images: imageUrls, // mảng ảnh
+      messageType: "image",
+    });
+
+    await newMessage.save();
+
+    res.status(200).json({
+      message: "Gửi ảnh thành công",
+      data: newMessage,
+    });
   } catch (err) {
-    console.error("Lỗi upload ảnh chat:", err.message);
+    console.error("Lỗi upload ảnh chat:", err);
     res.status(500).json({ message: "Lỗi server khi upload ảnh." });
   }
 };
+
 // Lấy danh sách phòng chat mà user tham gia
 const getChatRooms = async (req, res) => {
   try {
@@ -104,4 +124,5 @@ module.exports = {
   getChatRooms,
   sendMessage,
   getMessages,
+  uploadChatImage,
 };

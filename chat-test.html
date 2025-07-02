@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Chat + Ảnh</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: Arial;
+        padding: 20px;
+      }
+      input,
+      textarea {
+        width: 100%;
+        margin-top: 8px;
+      }
+      img {
+        max-width: 300px;
+        margin-top: 5px;
+      }
+      .message {
+        border-bottom: 1px solid #ccc;
+        padding: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>📨 Gửi tin nhắn và ảnh qua Socket.IO</h2>
+
+    <label>Chat Room ID</label>
+    <input type="text" id="chatId" value="room123" />
+
+    <label>Sender ID</label>
+    <input type="text" id="senderId" value="user123" />
+
+    <label>Tin nhắn văn bản</label>
+    <textarea id="message" rows="3"></textarea>
+    <button onclick="sendText()">📤 Gửi Tin nhắn</button>
+
+    <hr />
+
+    <label>Chọn ảnh để gửi</label>
+    <input type="file" id="imageInput" />
+    <button onclick="uploadAndSendImage()">📸 Upload & Gửi ảnh</button>
+
+    <hr />
+    <h3>📥 Tin nhắn nhận được:</h3>
+    <div id="messages"></div>
+
+    <script>
+      const socket = io("http://localhost:4000"); // ⚠️ Đổi nếu backend bạn dùng port khác
+
+      // Nhận tin nhắn text
+      socket.on("receiveMessage", (data) => {
+        displayMessage(data.sender, data.message);
+      });
+
+      // Nhận hình ảnh
+      socket.on("chat:receiveImage", (data) => {
+        displayImage(data.sender, data.image);
+      });
+
+      function displayMessage(sender, text) {
+        const msgBox = document.createElement("div");
+        msgBox.className = "message";
+        msgBox.innerHTML = `<strong>${sender}:</strong> ${text}`;
+        document.getElementById("messages").appendChild(msgBox);
+      }
+
+      function displayImage(sender, imgUrl) {
+        const msgBox = document.createElement("div");
+        msgBox.className = "message";
+        msgBox.innerHTML = `<strong>${sender} gửi ảnh:</strong><br><img src="${imgUrl}" />`;
+        document.getElementById("messages").appendChild(msgBox);
+      }
+
+      function sendText() {
+        const chatId = document.getElementById("chatId").value;
+        const senderId = document.getElementById("senderId").value;
+        const message = document.getElementById("message").value;
+
+        if (!message.trim()) return alert("Nhập tin nhắn!");
+
+        socket.emit("sendMessage", { chatId, senderId, message });
+        document.getElementById("message").value = "";
+      }
+
+      async function uploadAndSendImage() {
+        const chatId = document.getElementById("chatId").value;
+        const senderId = document.getElementById("senderId").value;
+        const fileInput = document.getElementById("imageInput");
+
+        if (!fileInput.files.length) return alert("Chọn ảnh!");
+
+        const formData = new FormData();
+        formData.append("images", fileInput.files[0]);
+
+        try {
+          const res = await fetch(
+            "http://localhost:4000/api/chat/upload-image",
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const result = await res.json();
+
+          if (!result.imageUrl) {
+            alert("Lỗi upload: " + (result.message || "không có ảnh URL"));
+            return;
+          }
+
+          socket.emit("chat:sendImage", {
+            chatId,
+            senderId,
+            imageUrl: result.imageUrl,
+          });
+
+          fileInput.value = "";
+        } catch (err) {
+          alert("Lỗi gửi ảnh: " + err.message);
+        }
+      }
+    </script>
+  </body>
+</html>

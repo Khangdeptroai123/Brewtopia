@@ -10,8 +10,8 @@ const videoHandler = require("./handlers/videoHandler");
 module.exports = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL,
-      // origin: "*",
+      // origin: process.env.CLIENT_URL,
+      origin: "*",
       methods: ["GET", "POST"],
       credentials: true,
     },
