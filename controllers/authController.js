@@ -6,9 +6,9 @@ const {
   resetPwd,
   generateToken,
   forgotPasswordV1,
-  sendResetPasswordEmail,
 } = require("../services/authService");
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
 const setCookie = require("../utils/setCookie");
 const Cafe = require("../models/Cafe");
 const { token } = require("morgan");
@@ -40,11 +40,26 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await loginUser(email, password);
-    if (!user) return res.status(401).json({ message: "User not found" });
+
+    const user = await User.findOne({ email });
+
+    if (!user)
+      return res.status(401).json({ message: "Tài khoản không tồn tại" });
+
+    if (!user.isVerified) {
+      return res.status(401).json({ message: "Tài khoản chưa xác thực!" });
+    }
+
+    const comPass = await bcrypt.compare(password, user.password);
+    if (!comPass)
+      return res.status(401).json({ message: "Mật khẩu không chính xác!" });
+
+    user.isActive = true;
+    await user.save();
+
     const token = await generateToken(user);
     setCookie(res, token);
-    // Kiểm tra nếu user là admin
+
     if (user.role === "admin") {
       const cafe = await Cafe.findOne({ owner: user._id });
       if (cafe && cafe.status === "pending") {
@@ -56,6 +71,7 @@ const login = async (req, res) => {
         });
       }
     }
+
     res.status(200).json({
       message: "Đăng nhập thành công",
       status: "success",
@@ -63,8 +79,7 @@ const login = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Lỗi server" });
+    res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };
 
@@ -154,7 +169,39 @@ const forgotPassword = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+const confirmResetRequest = async (req, res) => {
+  try {
+    const { token } = req.query;
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    }).select("+isResetPasswordRequested");
+
+    if (!user)
+      return res
+        .status(400)
+        .json({ message: "Token không hợp lệ hoặc đã hết hạn!" });
+
+    if (!user.isResetPasswordRequested)
+      return res
+        .status(400)
+        .json({ message: "Yêu cầu đặt lại đã được xác nhận." });
+
+    user.isResetPasswordRequested = false;
+    await user.save();
+
+    // 👉 frontend redirect về form đổi mật khẩu
+    res.redirect(
+      `${process.env.CLIENT_URL}/reset-password?token=${token}&email=${user.email}`
+    );
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Lỗi xác nhận đặt lại mật khẩu", error: error.message });
+  }
+};
 module.exports = {
   register,
   login,
@@ -164,4 +211,5 @@ module.exports = {
   resetPassword,
   googleLogin,
   facebookLogin,
+  confirmResetRequest,
 };

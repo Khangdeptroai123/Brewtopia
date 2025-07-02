@@ -8,6 +8,7 @@ const {
   resetPassword,
   googleLogin,
   facebookLogin,
+  confirmResetRequest,
 } = require("../controllers/authController");
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.post("/verification", verifyUser);
 router.post("/resend-verification", verifyUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.get("/confirm-reset-request", confirmResetRequest);
 router.get(
   "/google",
   passport.authenticate("google", { scope: ["profile", "email"] })

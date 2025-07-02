@@ -22,6 +22,11 @@ const UserSchema = new mongoose.Schema(
       default: 0,
       min: [0, "Points must be non-negative"],
     },
+    isResetPasswordRequested: {
+      type: Boolean,
+      default: false,
+      select: false,
+    },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: String },
   },

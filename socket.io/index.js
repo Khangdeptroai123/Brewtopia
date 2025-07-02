@@ -20,13 +20,13 @@ module.exports = (server) => {
   // 🔌 Khi có client kết nối
   io.on("connection", (socket) => {
     console.log("🔗 Client connected:", socket.id);
-    // followEventHandler(socket, io);
+    followEventHandler(socket, io);
     ChatCallHandler(socket, io);
-    // chatHandler(socket, io);
-    // commentHandler(socket, io);
-    // likeHandler(socket, io);
-    // shareHandler(socket, io);
-    // videoHandler(socket, io);
+    chatHandler(socket, io);
+    commentHandler(socket, io);
+    likeHandler(socket, io);
+    shareHandler(socket, io);
+    videoHandler(socket, io);
 
     socket.on("disconnect", () => {
       console.log("🔌 Client disconnected:", socket.id);
