@@ -17,6 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // ✅ CORS cấu hình đúng cho client deploy
+
 const allowedOrigins = [process.env.CLIENT_URL];
 
 app.use(
@@ -28,7 +29,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // 🔒 Cho phép cookie/session
+    credentials: true,
   })
 );
 const path = require("path");

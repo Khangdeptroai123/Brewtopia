@@ -7,6 +7,7 @@ const {
   forgotPasswordV1,
 } = require("../services/authService");
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
 const Crypto = require("crypto");
 const setCookie = require("../utils/setCookie");
 const Cafe = require("../models/Cafe");

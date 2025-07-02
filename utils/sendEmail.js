@@ -33,7 +33,7 @@ const sendEmail = async ({ to, code, user, type }) => {
         <p style="font-size: 16px; color: #333;">Chào <strong>${user}</strong>,</p>
         <p style="font-size: 16px; color: #555;">Bạn vừa yêu cầu đặt lại mật khẩu. Vui lòng nhấp vào nút bên dưới để tiếp tục:</p>
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${process.env.CLIENT_URL}/confirm-reset?token=${code}" 
+          <a href="${process.env.CLIENT_URL}/confirm-reset-request?token=${code}" 
              style="background-color: #FF4500; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-size: 18px; font-weight: bold;">
             Đặt lại mật khẩu
           </a>
